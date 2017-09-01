@@ -1,0 +1,20 @@
+[package]
+name = "piston3d-construct"
+version = "0.1.0"
+authors = ["Sven Nilsen <bvssvni@gmail.com>"]
+description = "A library for higher order functional programming with homotopy maps to construct 3D geometry"
+readme = "REAMDE.md"
+documentation = "https://docs.rs/piston3d-construct"
+repository = "https://github.com/PistonDevelopers/construct.git"
+webpage = "https://github.com/PistonDevelopers/construct"
+license = "MIT"
+exclude = [
+    "images/*"
+]
+
+[lib]
+name = "construct"
+path = "src/lib.rs"
+
+[dependencies]
+vecmath = "0.3.0"
