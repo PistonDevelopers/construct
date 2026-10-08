@@ -48,7 +48,7 @@ pub fn cbez<T: Float>(
     c: [T; 3],
     d: [T; 3],
 ) -> Fn1<T> {
-    lin2(lin(a, b), lin(c, d))
+    lin2(qbez(a, b, c), qbez(b, c, d))
 }
 
 /// Constructs a curved quad by smoothing between boundary functions.
