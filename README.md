@@ -1,4 +1,4 @@
-# construct
+# Piston3D-Construct
 A library for higher order functional programming with homotopy maps to construct 3D geometry
 
 ![car](./images/car.png)
@@ -10,12 +10,13 @@ A [homotopy](https://en.wikipedia.org/wiki/Homotopy) is a continuous deformation
 This library uses a simplified homotopy version designed for constructing 3D geometry:
 
 ```rust
+use std::sync::Arc;
 /// A function of type `1d -> 3d`.
-pub type Fn1<T> = Arc<Fn(T) -> [T; 3] + Sync + Send>;
+pub type Fn1<T> = Arc<dyn Fn(T) -> [T; 3] + Sync + Send>;
 /// A function of type `2d -> 3d`.
-pub type Fn2<T> = Arc<Fn([T; 2]) -> [T; 3] + Sync + Send>;
+pub type Fn2<T> = Arc<dyn Fn([T; 2]) -> [T; 3] + Sync + Send>;
 /// A function of type `3d -> 3d`.
-pub type Fn3<T> = Arc<Fn([T; 3]) -> [T; 3] + Sync + Send>;
+pub type Fn3<T> = Arc<dyn Fn([T; 3]) -> [T; 3] + Sync + Send>;
 ```
 
 In this library, these functions are called *homotopy maps* and usually satisfies these properties:
