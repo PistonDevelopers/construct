@@ -1,63 +1,5 @@
 #![deny(missing_docs)]
-
-//! A library for higher order functional programming with homotopy maps to construct 3D geometry.
-//!
-//! ### What is a homotopy map?
-//!
-//! A [homotopy](https://en.wikipedia.org/wiki/Homotopy) is a continuous
-//! deformation between two functions.
-//! Think about combining two functions `f` and `g` with a parameter in the range
-//! between 0 and 1 such that setting the parameter to 0 gives you `f` and
-//! setting it to 1 gives you `g`.
-//! With other words, it lets you interpolate smoothly between functions.
-//!
-//! This library uses a simplified homotopy version designed for constructing 3D geometry:
-//!
-//! ```rust
-//! /// A function of type `1d -> 3d`.
-//! pub type Fn1<T> = Arc<Fn(T) -> [T; 3] + Sync + Send>;
-//! /// A function of type `2d -> 3d`.
-//! pub type Fn2<T> = Arc<Fn([T; 2]) -> [T; 3] + Sync + Send>;
-//! /// A function of type `3d -> 3d`.
-//! pub type Fn3<T> = Arc<Fn([T; 3]) -> [T; 3] + Sync + Send>;
-//! ```
-//!
-//! In this library, these functions are called *homotopy maps* and usually
-//! satisfies these properties:
-//!
-//! - All inputs are assumed to be normalized, starting at 0 and ending at 1.
-//!   This means that `Fn1` forms a curved line, `Fn2` forms a curved quad,
-//!   and `Fn3` forms a curved cube.
-//! - The `Arc` smart pointer makes it possible to clone closures.
-//! - The `Sync` and `Send` constraints makes it easier to program with multiple threads.
-//! - Basic geometric shapes are continuous within the range from 0 to 1.
-//!
-//! A curved cube does not mean it need to look like a cube.
-//! Actually, you can create a variety of shapes that do not look like cubes at all,
-//! e.g. a sphere.
-//! What is meant by a "curved cube" is that there are 3 parameters between 0 and 1
-//! controlling the generation of points.
-//! If you used an identity map, you would get a cube shape.
-//! The transformation to other shapes is the reason it is called a "curved cube".
-//!
-//! ### Motivation
-//!
-//! Constructing 3D geometry is an iterative process where the final design/need
-//! can be quite different from the first draft.
-//! In game engines there are additional needs like generating multiple models of various
-//! detail or adjusting models depending on the capacity of the target platform.
-//! This makes it desirable to have some tools where one can work with an idea without
-//! getting slowed down by a lot of technical details.
-//!
-//! Homotopy maps have the property that the geometry can be constructed by need,
-//! without any additional instructions.
-//! This makes it a suitable candidate for combining them with higher order functional programming.
-//! Functions give an accurate representation while at the same time being lazy,
-//! such that one can e.g. intersect a curved cube to get a curved quad.
-//!
-//! This library is an experiment to see how homotopy maps and higher order functional programming
-//! can be used to iterate on design.
-//! Function names are very short to provide good ergonomics.
+#![doc = include_str!("../README.md")]
 
 extern crate vecmath;
 
@@ -76,11 +18,11 @@ pub use vecmath::traits::*;
 use std::sync::Arc;
 
 /// A function of type `1d -> 3d`.
-pub type Fn1<T> = Arc<Fn(T) -> [T; 3] + Sync + Send>;
+pub type Fn1<T> = Arc<dyn Fn(T) -> [T; 3] + Sync + Send>;
 /// A function of type `2d -> 3d`.
-pub type Fn2<T> = Arc<Fn([T; 2]) -> [T; 3] + Sync + Send>;
+pub type Fn2<T> = Arc<dyn Fn([T; 2]) -> [T; 3] + Sync + Send>;
 /// A function of type `3d -> 3d`.
-pub type Fn3<T> = Arc<Fn([T; 3]) -> [T; 3] + Sync + Send>;
+pub type Fn3<T> = Arc<dyn Fn([T; 3]) -> [T; 3] + Sync + Send>;
 
 /// Returns a linear function.
 pub fn lin<T: Float>(a: [T; 3], b: [T; 3]) -> Fn1<T> {
@@ -161,7 +103,7 @@ pub fn con<T: Float>(w: T, a: Fn1<T>, b: Fn1<T>) -> Fn1<T> {
 pub fn conx2<T: Float>(wx: T, a: Fn2<T>, b: Fn2<T>) -> Fn2<T> {
     return Arc::new(move |t| {
         if t[0] < wx {a([t[0] / wx, t[1]])}
-        else {b(([(t[0] - wx) / (<T as One>::one() - wx), t[1]]))}
+        else {b([(t[0] - wx) / (<T as One>::one() - wx), t[1]])}
     })
 }
 
@@ -177,7 +119,7 @@ pub fn cony2<T: Float>(wy: T, a: Fn2<T>, b: Fn2<T>) -> Fn2<T> {
 pub fn conx3<T: Float>(wx: T, a: Fn3<T>, b: Fn3<T>) -> Fn3<T> {
     return Arc::new(move |t| {
         if t[0] < wx {a([t[0] / wx, t[1], t[2]])}
-        else {b(([(t[0] - wx) / (<T as One>::one() - wx), t[1], t[2]]))}
+        else {b([(t[0] - wx) / (<T as One>::one() - wx), t[1], t[2]])}
     })
 }
 
@@ -200,8 +142,8 @@ pub fn conz3<T: Float>(wz: T, a: Fn3<T>, b: Fn3<T>) -> Fn3<T> {
 /// Mirror shape `1d -> 3d` around yz-plane at x coordinate.
 pub fn mx<T: 'static, U: Float>(
     x: U,
-    a: Arc<Fn(T) -> [U; 3] + Sync + Send>
-) -> Arc<Fn(T) -> [U; 3] + Sync + Send>
+    a: Arc<dyn Fn(T) -> [U; 3] + Sync + Send>
+) -> Arc<dyn Fn(T) -> [U; 3] + Sync + Send>
     where f64: Cast<U>
 {
     return Arc::new(move |t| {
@@ -213,8 +155,8 @@ pub fn mx<T: 'static, U: Float>(
 /// Mirror shape `1d -> 3d` around xz-plane at y coordinate.
 pub fn my<T: 'static, U: Float>(
     y: U,
-    a: Arc<Fn(T) -> [U; 3] + Sync + Send>
-) -> Arc<Fn(T) -> [U; 3] + Sync + Send>
+    a: Arc<dyn Fn(T) -> [U; 3] + Sync + Send>
+) -> Arc<dyn Fn(T) -> [U; 3] + Sync + Send>
     where f64: Cast<U>
 {
     return Arc::new(move |t| {
@@ -226,8 +168,8 @@ pub fn my<T: 'static, U: Float>(
 /// Mirror shape `1d -> 3d` around xy-plane at z coordinate.
 pub fn mz<T: 'static, U: Float>(
     z: U,
-    a: Arc<Fn(T) -> [U; 3] + Sync + Send>
-) -> Arc<Fn(T) -> [U; 3] + Sync + Send>
+    a: Arc<dyn Fn(T) -> [U; 3] + Sync + Send>
+) -> Arc<dyn Fn(T) -> [U; 3] + Sync + Send>
     where f64: Cast<U>
 {
     return Arc::new(move |t| {
@@ -279,8 +221,8 @@ pub fn rev<T: Float>(a: Fn1<T>) -> Fn1<T> {
 /// Offsets `3d -> 3d` at position.
 pub fn off<T: 'static, U: Float>(
     pos: [U; 3],
-    a: Arc<Fn(T) -> [U; 3] + Sync + Send>
-) -> Arc<Fn(T) -> [U; 3] + Sync + Send> {
+    a: Arc<dyn Fn(T) -> [U; 3] + Sync + Send>
+) -> Arc<dyn Fn(T) -> [U; 3] + Sync + Send> {
     return Arc::new(move |t| add3(a(t), pos))
 }
 
